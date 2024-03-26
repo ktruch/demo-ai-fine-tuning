@@ -1,0 +1,9 @@
+{"module": "uvicorn",
+"type": "python",
+"request": "launch",
+"args": [
+    "main:app",
+    "--reload",
+    "--port",
+    "8000"
+]}
