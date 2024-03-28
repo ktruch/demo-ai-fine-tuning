@@ -2,7 +2,6 @@ from fastapi import APIRouter, Response
 import documentsService
 import embeddings
 import vectordb
-import copyFilesToS3
 import fineTuning
 
 router = APIRouter(prefix="/f-t")
@@ -37,8 +36,6 @@ def create_context(prompt: str):
 
 @router.get("/fine-tuning-from-all-docs")
 def fine_tuning():
-    return fineTuning.finetuning_for_all_documents()
+    # return fineTuning.finetuning_for_all_documents()
+    return "Option deactivated - too expensive"
 
-@router.get("/copy-files-from-sharepoint-to-s3")
-def copy_files():
-    return copyFilesToS3.copy_files()
