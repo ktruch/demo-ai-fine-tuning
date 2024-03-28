@@ -42,7 +42,9 @@ def getPdfFileTextFromS3(object_key: str):
         text += page.extract_text()
     text = text.replace("\n", " ")
     pdf_file.close()
+
     return text
+
 
 
 def getListOfDocumentsOnS3():
@@ -73,3 +75,7 @@ def get_num_of_tokens_from_string(string: str, encoding_name: str) -> int:
     encoding = tiktoken.get_encoding(encoding_name)
     num_tokens = len(encoding.encode(string))
     return num_tokens
+
+
+        
+    

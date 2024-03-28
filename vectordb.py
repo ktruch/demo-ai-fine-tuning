@@ -1,7 +1,7 @@
 from sqlalchemy import Column, VARCHAR, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
-import fineTuning
+import embeddings
 import json
 from dotenv import load_dotenv
 import os
@@ -27,7 +27,7 @@ def getAllEmbeddings():
     return result.fetchall()
 
 def getHighestScoreByPrompt(prompt) -> list:
-    prompt_vectors = fineTuning.create_embeddings_by_prompt(prompt)
+    prompt_vectors = embeddings.create_embeddings_by_prompt(prompt)
     data = {'prompt_vectors' : json.dumps(prompt_vectors)}
     query = text("SELECT text, DOT_PRODUCT(vector, JSON_ARRAY_PACK(:prompt_vectors)) AS score FROM `demo-vector-table` ORDER BY score DESC LIMIT 5;")
     result = conn.execute(query, data).fetchall()
