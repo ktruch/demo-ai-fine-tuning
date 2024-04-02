@@ -1,4 +1,5 @@
 from openai import OpenAI
+import json
 import vectordb
 import documentsService
 from dotenv import load_dotenv
@@ -20,7 +21,7 @@ def create_context(prompt):
     for row in best_chunks_on_vectors_score:
         context += row.text
         context += " "
-    return context
+    return str(context)
 
 def create_embeddings_for_all_files():
     titles_list = documentsService.getListOfDocumentsOnS3()

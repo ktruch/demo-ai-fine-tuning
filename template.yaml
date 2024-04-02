@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy a serverless Fargate service with a task that uses an ECR image.
+
+Resources:
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: demo-ai-cluster-ecs-ktruch
+
+  # EcrRepository:
+  #   Type: AWS::ECR::Repository
+  #   Properties:
+  #     RepositoryName: demo-ai
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: demo-ai-embeddings
+      Cpu: '256' 
+      Memory: '512' 
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      ContainerDefinitions:
+        - Name: ktruch-demo-ai
+          Image: !Sub '613546732509.dkr.ecr.eu-central-1.amazonaws.com/demo-ai:latest'
+          Essential: true
+          PortMappings:
+            - ContainerPort: 80
+
+  FargateService:
+    Type: AWS::ECS::Service
+    DependsOn: EcsCluster
+    Properties:
+      ServiceName: demo-ai-fargate-ktruch
+      Cluster: !Ref EcsCluster
+      LaunchType: FARGATE
+      DesiredCount: 1
+      TaskDefinition: !Ref TaskDefinition
+      SchedulingStrategy: REPLICA
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 50
+        MaximumPercent: 200
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - subnet-04ab196a3c0f610f0
+          SecurityGroups:
+            - !Ref DemoAISecurityGroup
+          AssignPublicIp: ENABLED
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: S3AccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                  - 's3:PutObject'
+                Resource: 'arn:aws:s3:::tbscg-internal-hr-documents-bucket/*'
+
+# Networking Resources: VPC, Subnets, and Security Group should be defined here as well.
+
+  DemoAISecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: vpc-0dec8ebf2e5823d70
+      GroupDescription: Default security group for instance
